@@ -15,7 +15,7 @@ b = np.array([-3, 1, 2, 7])
 a = np.linalg.solve(A, b)
 
 print(a)
-
+print("TEST")
 tx = np.linspace(0, 5, 200)
 fx = a[0] + a[1] * tx + a[2] * tx ** 2 + a[3] * tx ** 3
 
