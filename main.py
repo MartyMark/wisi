@@ -2,7 +2,7 @@ import matplotlib
 import mip as mip
 import numpy as np
 
-import networkx as nx
+# import networkx as nx
 import matplotlib.pyplot as plt
 
 matplotlib.use('TkAgg')
@@ -34,11 +34,11 @@ def generate_cities():
 def calculate_distance(cities_list):
     cities_distance = []
 
-    for i in range(len(cities_list) - 1):
+    for i in range(len(cities_list)):
 
         city_distance = []
 
-        for j in range(len(cities_list) - 1):
+        for j in range(len(cities_list)):
 
             if i == j:
                 city_distance.append(0)
@@ -82,6 +82,13 @@ y = [m.add_var() for z in cities_range]
 # Zielfunktion mip.xsum(c[i][j] * x[i][j] minimieren
 m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
 status = m.optimize()
+
+
+print('solution:')
+for v in m.vars:
+    print('{} : {}'.format(v.name, v.x))
+
+print('Gesamtkosten des Weges: {}'.format(m.objective_value))
 
 # Plotting
 plt.style.use('_mpl-gallery')
