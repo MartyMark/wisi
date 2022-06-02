@@ -1,7 +1,7 @@
 import matplotlib
 import mip as mip
 import numpy as np
-
+from itertools import product
 # import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -55,6 +55,11 @@ def calculate_distance(cities_list):
 cities = generate_cities()
 c = calculate_distance(cities)
 
+# Ausgabe der einzelnen Punkte mit deren Koordinaten
+for point in cities:
+    print("Punkt: {}: ({},{})".format(point.name,point.x, point.y))
+
+# Ausgabe der Distanzmatrix    
 print(np.matrix(c))
 
 # Wenn es 10 Städte gibt wird eine Range erzeugt: (0, 10)
@@ -64,54 +69,73 @@ m = mip.Model()
 
 x = [[m.add_var(var_type=mip.BINARY) for j in cities_range] for i in cities_range]
 
-# --- Nebenbedingungen aufstellen ---
-
-
-# Hier wird iterativ jede Spalte betrachtet und geprüft, dass jede Stadt nur einmal verlassen wird.
-for i in cities_range:
-    m += mip.xsum(x[j][i] for j in set(cities_range) - {i}) == 1
-# TODO So umbauen, dass es einfacher zu lesen ist.
-
-# --- Nebenbedingung für Subtouren aufstellen ---
-
-# Kontinuierliche Variable, um Subtouren zu vermeiden
 # Jede Stadt hat eine andere fortlaufende Nummer in der geplanten Route, außer der ersten
 y = [m.add_var() for z in cities_range]
-# TODO
+
+# --- Nebenbedingungen aufstellen ---
+# TODO So umbauen, dass es einfacher zu lesen ist.
+
+# Hier wird iterativ jede Spalte betrachtet und geprüft, dass jede Stadt nur einmal angefahren wird.
+for i in set(cities_range):
+    m += mip.xsum(x[j][i] for j in set(cities_range) - {i}) == 1
+
+# Hier wird iterativ jede Spalte betrachtet und geprüft, dass jede Stadt nur einmal verlassen wird.    
+for i in set(cities_range):
+    m += mip.xsum(x[i][j] for j in set(cities_range) - {i}) == 1
+# Hier ist der Constraint um Subtouren zu vermeiden  
+for (i, j) in product(set(cities_range) - {0}, set(cities_range) - {0}):
+    if i != j:
+        m += y[i] - (len(c)+1)*x[i][j] >= y[j]-len(c)
 
 # Zielfunktion mip.xsum(c[i][j] * x[i][j] minimieren
 m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
 status = m.optimize()
 
 
-print('solution:')
-for v in m.vars:
-    print('{} : {}'.format(v.name, v.x))
+# print('solution:')
+# for v in m.vars:
+#     print('{} : {}'.format(v.name, v.x))
 
-print('Gesamtkosten des Weges: {}'.format(m.objective_value))
+# print('Gesamtkosten des Weges: {}'.format(m.objective_value))
 
-# Plotting
 plt.style.use('_mpl-gallery')
 plt.rcParams["figure.figsize"] = (6, 6)
+#TODO: Funktion und Variablennamen umändern. Dies ist nur zur Demonstration wie es am ende funktionieren muss.
+if m.num_solutions:
+    nc = 0
+    print('Optimaler Weg ist folgender:')
+    print(' -> Von Punkt: {} = ({},{})'.format(nc, cities[0].x, cities[0].y))
+    while True:
+        plt.scatter(cities[nc].x, cities[nc].y, s=10)
+        plt.annotate(nc, xytext=(cities[nc].x, cities[nc].y), xy=(cities[[i for i in cities_range if x[nc][i].x >= 0.99][0]].x, cities[[i for i in cities_range if x[nc][i].x >= 0.99][0]].y), arrowprops=dict(arrowstyle='->'))
+        nc = [i for i in cities_range if x[nc][i].x >= 0.99][0]
+        print(' -> Zu Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
+        if nc == 0:
+            break
+    print('Gesamtdistanz des Weges: {}'.format(m.objective_value))
+
+# Plotting
+# plt.style.use('_mpl-gallery')
+# plt.rcParams["figure.figsize"] = (6, 6)
 
 # TODO Hier müssen dann die sortieren Cities rein
-for i, city in enumerate(cities):
-    plt.annotate(city.name, (city.x, city.y))
-    plt.scatter(city.x, city.y, s=10)
-    if i == len(cities) - 1:
-        plt.annotate(
-            '',
-            xytext=(city.x, city.y),
-            xy=(cities[0].x, cities[0].y),
-            arrowprops=dict(arrowstyle='->')
-        )
-    else:
-        plt.annotate(
-            '',
-            xytext=(city.x, city.y),
-            xy=(cities[i + 1].x, cities[i + 1].y),
-            arrowprops=dict(arrowstyle='->')
-        )
+# for i, city in enumerate(cities):
+#     plt.annotate(city.name, (city.x, city.y))
+#     plt.scatter(city.x, city.y, s=10)
+#     if i == len(cities) - 1:
+#         plt.annotate(
+#             '',
+#             xytext=(city.x, city.y),
+#             xy=(cities[0].x, cities[0].y),
+#             arrowprops=dict(arrowstyle='->')
+#         )
+#     else:
+#         plt.annotate(
+#             '',
+#             xytext=(city.x, city.y),
+#             xy=(cities[i + 1].x, cities[i + 1].y),
+#             arrowprops=dict(arrowstyle='->')
+#         )
 
 plt.xlim(0, 1)
 plt.ylim(0, 1)
