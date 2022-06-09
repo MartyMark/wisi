@@ -2,7 +2,6 @@ import matplotlib
 import mip as mip
 import numpy as np
 from itertools import product
-# import networkx as nx
 import matplotlib.pyplot as plt
 
 matplotlib.use('TkAgg')
@@ -13,6 +12,16 @@ class City:
         self.x = x_coordinate
         self.y = y_coordinate
         self.name = name
+
+
+# Generiert statische Testdaten
+def generate_test_cities():
+    return [
+        City(0.1, 0.1, 0),
+        City(0.1, 0.6, 1),
+        City(0.6, 0.2, 2),
+        City(0.8, 0.9, 3)
+    ]
 
 
 # Generiert die Städte, die die x und y-Koordinate zwischen 0 und 1 beinhalten
@@ -52,12 +61,12 @@ def calculate_distance(cities_list):
     return cities_distance
 
 
-cities = generate_cities()
+cities = generate_test_cities()  # generate_cities()
 c = calculate_distance(cities)
 
 # Ausgabe der einzelnen Punkte mit deren Koordinaten
 for point in cities:
-    print("Punkt: {}: ({},{})".format(point.name,point.x, point.y))
+    print("Punkt: {}: ({},{})".format(point.name, point.x, point.y))
 
 # Ausgabe der Distanzmatrix    
 print(np.matrix(c))
@@ -69,73 +78,79 @@ m = mip.Model()
 
 x = [[m.add_var(var_type=mip.BINARY) for j in cities_range] for i in cities_range]
 
+# --- Nebenbedingungen aufstellen ---
+# Hier wird iterativ jede Zeile betrachtet und geprüft, dass jede Stadt nur einmal angefahren wird.
+
+# Hier iterieren wird pro Zeile immer von links nach rechts.
+# Bei 4 Städten lautet list(cities_range) -> [0, 1, 2, 3]
+# cities_range_reduced mit i = 0 -> [1, 2, 3]
+# cities_range_reduced mit i = 1 -> [0, 2, 3]
+
+# Dadurch entsteht folgende Matrix:
+
+# NUL x20 x30 x40
+# x11 NUL x31 x41
+# x12 x22 NUL x42
+# x13 x23 x33 NUL
+
+for i in list(cities_range):
+    cities_range_reduced = list(cities_range).copy()
+    cities_range_reduced.remove(i)
+
+    m += mip.xsum(x[j][i] for j in cities_range_reduced) == 1
+
+# Hier wird iterativ jede Spalte betrachtet und geprüft, dass jede Stadt nur einmal verlassen wird.
+
+# Selbe wie oben, nur spaltenweise
+for i in set(cities_range):
+    cities_range_reduced = list(cities_range).copy()
+    cities_range_reduced.remove(i)
+
+    m += mip.xsum(x[i][j] for j in cities_range_reduced) == 1
+
+# Hier ist die Nebenbedingung um Subtouren zu vermeiden. Die Funktion product erzeugt einen Iterator,
+# der das kartesische Produkt der übergebenen iterierbaren Objekte durchläuft.
+
 # Jede Stadt hat eine andere fortlaufende Nummer in der geplanten Route, außer der ersten
 y = [m.add_var() for z in cities_range]
 
-# --- Nebenbedingungen aufstellen ---
-# TODO So umbauen, dass es einfacher zu lesen ist.
-
-# Hier wird iterativ jede Spalte betrachtet und geprüft, dass jede Stadt nur einmal angefahren wird.
-for i in set(cities_range):
-    m += mip.xsum(x[j][i] for j in set(cities_range) - {i}) == 1
-
-# Hier wird iterativ jede Spalte betrachtet und geprüft, dass jede Stadt nur einmal verlassen wird.    
-for i in set(cities_range):
-    m += mip.xsum(x[i][j] for j in set(cities_range) - {i}) == 1
-# Hier ist der Constraint um Subtouren zu vermeiden  
-for (i, j) in product(set(cities_range) - {0}, set(cities_range) - {0}):
+cities_range_reduced = list(cities_range).copy()
+cities_range_reduced.remove(0)
+# Bei 4 Städten lautet product(cities_range_reduced, cities_range_reduced
+# -> [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3), ... ]
+for (i, j) in product(cities_range_reduced, cities_range_reduced):
     if i != j:
-        m += y[i] - (len(c)+1)*x[i][j] >= y[j]-len(c)
+        m += y[i] - (len(c) + 1) * x[i][j] >= y[j] - len(c)
 
-# Zielfunktion mip.xsum(c[i][j] * x[i][j] minimieren
+# --- Zielfunktion ---
+# mip.xsum(c[i][j] * x[i][j] minimieren
 m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
 status = m.optimize()
 
-
-# print('solution:')
-# for v in m.vars:
-#     print('{} : {}'.format(v.name, v.x))
-
-# print('Gesamtkosten des Weges: {}'.format(m.objective_value))
-
+# --- Plotting ---
 plt.style.use('_mpl-gallery')
 plt.rcParams["figure.figsize"] = (6, 6)
-#TODO: Funktion und Variablennamen umändern. Dies ist nur zur Demonstration wie es am ende funktionieren muss.
+# TODO: Funktion und Variablennamen umändern. Dies ist nur zur Demonstration wie es am ende funktionieren muss.
 if m.num_solutions:
     nc = 0
     print('Optimaler Weg ist folgender:')
     print(' -> Von Punkt: {} = ({},{})'.format(nc, cities[0].x, cities[0].y))
     while True:
         plt.scatter(cities[nc].x, cities[nc].y, s=10)
-        plt.annotate(nc, xytext=(cities[nc].x, cities[nc].y), xy=(cities[[i for i in cities_range if x[nc][i].x >= 0.99][0]].x, cities[[i for i in cities_range if x[nc][i].x >= 0.99][0]].y), arrowprops=dict(arrowstyle='->'))
+        plt.annotate(
+            nc,
+            xytext=(cities[nc].x, cities[nc].y),
+            xy=(
+                cities[[i for i in cities_range if x[nc][i].x >= 0.99][0]].x,
+                cities[[i for i in cities_range if x[nc][i].x >= 0.99][0]].y
+            ),
+            arrowprops=dict(arrowstyle='->')
+        )
         nc = [i for i in cities_range if x[nc][i].x >= 0.99][0]
         print(' -> Zu Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
         if nc == 0:
             break
     print('Gesamtdistanz des Weges: {}'.format(m.objective_value))
-
-# Plotting
-# plt.style.use('_mpl-gallery')
-# plt.rcParams["figure.figsize"] = (6, 6)
-
-# TODO Hier müssen dann die sortieren Cities rein
-# for i, city in enumerate(cities):
-#     plt.annotate(city.name, (city.x, city.y))
-#     plt.scatter(city.x, city.y, s=10)
-#     if i == len(cities) - 1:
-#         plt.annotate(
-#             '',
-#             xytext=(city.x, city.y),
-#             xy=(cities[0].x, cities[0].y),
-#             arrowprops=dict(arrowstyle='->')
-#         )
-#     else:
-#         plt.annotate(
-#             '',
-#             xytext=(city.x, city.y),
-#             xy=(cities[i + 1].x, cities[i + 1].y),
-#             arrowprops=dict(arrowstyle='->')
-#         )
 
 plt.xlim(0, 1)
 plt.ylim(0, 1)
