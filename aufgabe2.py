@@ -3,6 +3,7 @@ import mip as mip
 import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
+from scipy.optimize import linprog
 
 matplotlib.use('TkAgg')
 
@@ -68,4 +69,10 @@ c = calculate_distance(cities)
 for point in cities:
     print("Punkt: {}: ({},{})".format(point.name, point.x, point.y))
 
+# dist -> 1D Array von Distanzen alle möglichen Verbindungen bei 200 Städten = 19900 Verbindungen also: 19900 Distanzen
+# Aeq -> 200 x 19900 Matrix -> (2,220), x ist Stadt 2 und y 220 ist der Index in der dist Array an dem die Distanz steht
+# intcon -> Range von 1 bis Länge von dist
+# beq -> 1D Array 200 Lang nur mit 2
+# lb und ub
 
+[x_tsp, costopt, exitflag, output] = linprog(dist, intcon, [], [], Aeq, beq, lb, ub, opts);
