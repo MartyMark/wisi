@@ -4,7 +4,7 @@ import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
 
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 
 
 class City:
@@ -33,7 +33,8 @@ def generate_cities():
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
         y_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
-
+        
+        plt.scatter(x_coordinate, y_coordinate, s=10)
         cities_temp.append(City(x_coordinate, y_coordinate, n))
 
     return cities_temp
@@ -61,7 +62,7 @@ def calculate_distance(cities_list):
     return cities_distance
 
 
-cities = generate_test_cities()  # generate_cities()
+cities = generate_cities() #generate_test_cities()  # generate_cities()
 c = calculate_distance(cities)
 
 # Ausgabe der einzelnen Punkte mit deren Koordinaten
@@ -128,15 +129,15 @@ m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for 
 status = m.optimize()
 
 # --- Plotting ---
-plt.style.use('_mpl-gallery')
-plt.rcParams["figure.figsize"] = (6, 6)
+# plt.style.use('_mpl-gallery')
+# plt.rcParams["figure.figsize"] = (6, 6)
 # TODO: Funktion und Variablennamen umändern. Dies ist nur zur Demonstration wie es am ende funktionieren muss.
 if m.num_solutions:
     nc = 0
     print('Optimaler Weg ist folgender:')
     print(' -> Von Punkt: {} = ({},{})'.format(nc, cities[0].x, cities[0].y))
     while True:
-        plt.scatter(cities[nc].x, cities[nc].y, s=10)
+        # plt.scatter(cities[nc].x, cities[nc].y, s=10)
         plt.annotate(
             nc,
             xytext=(cities[nc].x, cities[nc].y),
@@ -150,6 +151,7 @@ if m.num_solutions:
         print(' -> Zu Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
         if nc == 0:
             break
+            
     print('Gesamtdistanz des Weges: {}'.format(m.objective_value))
 
 plt.xlim(0, 1)
