@@ -78,11 +78,20 @@ idxs = combinations(cities_range,2)
 dist = calculate_distance2()
 print("Distanz:", dist)
 
-for i in idxs:
-    print(idxs[0][1])
-# for i in range(len(cities)):
-#     for j in range(len(dist)):
-#         if i == 
+Aeq = []    
+for i in range(len(cities)):
+    print(i)
+    single_aeq = []
+    for (k, j) in idxs:
+        print(k , " ", j)
+        if i == k or i == j:
+            single_aeq.append(1)
+        else:
+            single_aeq.append(0)
+    Aeq.append(single_aeq)
+
+print(Aeq)
+            
     
     
 # Ausgabe der einzelnen Punkte mit deren Koordinaten
