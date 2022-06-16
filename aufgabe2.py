@@ -1,7 +1,7 @@
 import matplotlib
 import mip as mip
 import numpy as np
-from itertools import product
+from itertools import product, combinations
 import matplotlib.pyplot as plt
 from scipy.optimize import linprog
 
@@ -57,14 +57,37 @@ def calculate_distance(cities_list):
     return cities_distance
 
 
+def calculate_distance2():
+    cities_distance = []
+    for (i,j) in combinations(cities_range,2):
+        print(i, " " ,j)
+        print("City 1 (",cities[i].x, ",", cities[i].y, ") ", "City 2 (", cities[j].x, ", ", cities[j].y, ")")
+        
+        distance = ((cities[i].x - cities[j].x) ** 2 + (
+                cities[i].y - cities[j].y) ** 2) ** 0.5
+        print(distance)
+        cities_distance.append(round(distance, 2))
+    
+    return cities_distance
+
+
 cities = generate_test_cities()  # generate_cities()
-dist = calculate_distance(cities)
+cities_range = list(range(len(cities)))
+idxs = combinations(cities_range,2)
 
-print(dist)
+dist = calculate_distance2()
+print("Distanz:", dist)
 
+for i in idxs:
+    print(idxs[0][1])
+# for i in range(len(cities)):
+#     for j in range(len(dist)):
+#         if i == 
+    
+    
 # Ausgabe der einzelnen Punkte mit deren Koordinaten
-for point in cities:
-    print("Punkt: {}: ({},{})".format(point.name, point.x, point.y))
+# for point in cities:
+#     print("Punkt: {}: ({},{})".format(point.name, point.x, point.y))
 
 # dist -> 1D Array von Distanzen alle möglichen Verbindungen bei 200 Städten = 19900 Verbindungen also: 19900 Distanzen
 # Aeq -> 200 x 19900 Matrix -> (2,220), x ist Stadt 2 und y 220 ist der Index in der dist Array an dem die Distanz steht
@@ -72,4 +95,7 @@ for point in cities:
 # beq -> 1D Array 200 Lang nur mit 2
 # lb und ub
 
-[x_tsp, costopt, exitflag, output] = linprog(dist, intcon, [], [], Aeq, beq, lb, ub, opts);
+# Aeq = [[1,1,1]
+        
+
+# [x_tsp, costopt, exitflag, output] = linprog(dist, intcon, [], [], Aeq, beq, lb, ub, opts);
