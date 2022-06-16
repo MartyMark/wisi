@@ -31,7 +31,7 @@ def generate_test_cities():
 def generate_cities():
     cities_temp = []
 
-    city_count = np.random.randint(low=4, high=5)
+    city_count = np.random.randint(low=19, high=20)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
@@ -44,10 +44,7 @@ def generate_cities():
 
 def calculate_distance():
     cities_distance = []
-    for (i,j) in combinations(cities_range,2):
-        print(i, " " ,j)
-        print("City 1 (",cities[i].x, ",", cities[i].y, ") ", "City 2 (", cities[j].x, ", ", cities[j].y, ")")
-        
+    for (i,j) in combinations(cities_range,2):     
         distance = ((cities[i].x - cities[j].x) ** 2 + (
                 cities[i].y - cities[j].y) ** 2) ** 0.5
         print(distance)
@@ -87,7 +84,7 @@ def plotRoutes(resX):
            plt.plot(lx,ly) 
 
 
-cities = generate_test_cities()  # generate_cities()
+cities = generate_cities() #generate_test_cities()
 cities_range = list(range(len(cities)))
 idxs = combinations(cities_range,2)
 
@@ -97,25 +94,23 @@ print("Distanz:", dist)
 
 list_idxs = list(copy.deepcopy(idxs))
 
-
 Aeq = generate_Aeq() 
-print(Aeq)
-print(csr_matrix(Aeq))
+print("Aeq ungesparsed: ", Aeq)
+
+Aeq = csr_matrix(Aeq)
+print("Aeq gesparsed: ", Aeq)
 
 beq = np.empty(len(cities))
 beq.fill(2)
-print(beq)
-
-# Ausgabe der einzelnen Punkte mit deren Koordinaten
-# for point in cities:
-#     print("Punkt: {}: ({},{})".format(point.name, point.x, point.y))
+print("Beq: ", beq)
 
 # dist -> 1D Array von Distanzen alle möglichen Verbindungen bei 200 Städten = 19900 Verbindungen also: 19900 Distanzen
 # Aeq -> 200 x 19900 Matrix -> (2,220), x ist Stadt 2 und y 220 ist der Index in der dist Array an dem die Distanz steht
 # intcon -> Range von 1 bis Länge von dist
 # beq -> 1D Array 200 Lang nur mit 2
 # lb und ub
-res = linprog(c=dist, A_eq=Aeq, b_eq=beq, bounds=(0, 1));
+res = linprog(c=dist, A_eq=Aeq, b_eq=beq, bounds=(0, 1), options={'sparse':True});
+print(res)
 
 # Zeichne den Graphen mit den Verbindungen
 plotCities()
