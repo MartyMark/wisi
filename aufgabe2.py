@@ -4,6 +4,7 @@ import numpy as np
 from itertools import product, combinations, tee
 import matplotlib.pyplot as plt
 from scipy.optimize import linprog
+from scipy.sparse import csr_matrix
 
 matplotlib.use('TkAgg')
 
@@ -75,7 +76,9 @@ dist = calculate_distance()
 print("Distanz:", dist)
 
 Aeq = generate_Aeq() 
-print(Aeq) 
+print(Aeq)
+
+print(csr_matrix(Aeq))
 
 
     
