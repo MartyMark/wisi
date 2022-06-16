@@ -45,25 +45,22 @@ def calculate_distance(cities_list):
     cities_distance = []
 
     for i in range(len(cities_list)):
-
-        city_distance = []
-
         for j in range(len(cities_list)):
 
             if i == j:
-                city_distance.append(0)
+                cities_distance.append(0)
             else:
                 distance = ((cities_list[i].x - cities_list[j].x) ** 2 + (
                         cities_list[i].y - cities_list[j].y) ** 2) ** 0.5
-                city_distance.append(round(distance, 2))
-
-        cities_distance.append(city_distance)
+                cities_distance.append(round(distance, 2))
 
     return cities_distance
 
 
 cities = generate_test_cities()  # generate_cities()
-c = calculate_distance(cities)
+dist = calculate_distance(cities)
+
+print(dist)
 
 # Ausgabe der einzelnen Punkte mit deren Koordinaten
 for point in cities:
