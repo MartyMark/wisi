@@ -1,7 +1,7 @@
 import matplotlib
 import mip as mip
 import numpy as np
-from itertools import product, combinations
+from itertools import product, combinations, tee
 import matplotlib.pyplot as plt
 from scipy.optimize import linprog
 
@@ -40,24 +40,7 @@ def generate_cities():
     return cities_temp
 
 
-# Generiert die Distanzmatrix (c)
-def calculate_distance(cities_list):
-    cities_distance = []
-
-    for i in range(len(cities_list)):
-        for j in range(len(cities_list)):
-
-            if i == j:
-                cities_distance.append(0)
-            else:
-                distance = ((cities_list[i].x - cities_list[j].x) ** 2 + (
-                        cities_list[i].y - cities_list[j].y) ** 2) ** 0.5
-                cities_distance.append(round(distance, 2))
-
-    return cities_distance
-
-
-def calculate_distance2():
+def calculate_distance():
     cities_distance = []
     for (i,j) in combinations(cities_range,2):
         print(i, " " ,j)
@@ -70,27 +53,61 @@ def calculate_distance2():
     
     return cities_distance
 
+def generate_Aeq():
+    Aeq = []   
+    iterIdxs = tee(idxs, len(cities))
+    for i in range(len(cities)):
+        single_aeq = []
+        for (k, j) in iterIdxs[i]:
+            if i == k or i == j:
+                single_aeq.append(1)
+            else:
+                single_aeq.append(0)
+        Aeq.append(single_aeq)
+    return Aeq
+
 
 cities = generate_test_cities()  # generate_cities()
 cities_range = list(range(len(cities)))
 idxs = combinations(cities_range,2)
 
-dist = calculate_distance2()
+dist = calculate_distance()
 print("Distanz:", dist)
 
-Aeq = []    
-for i in range(len(cities)):
-    print(i)
-    single_aeq = []
-    for (k, j) in idxs:
-        print(k , " ", j)
-        if i == k or i == j:
-            single_aeq.append(1)
-        else:
-            single_aeq.append(0)
-    Aeq.append(single_aeq)
+# def test():
+#     single_aeq = []
+#     for (k, j) in test2[]:
+#         print(k, " ", j)
+#         if i == k or i == j:
+#             single_aeq.append(1)
+#         else:
+#             single_aeq.append(0)
+#     return single_aeq
 
-print(Aeq)
+Aeq = generate_Aeq() 
+print(Aeq)  
+# for i in range(len(cities)):
+#     print(i)
+#     single_aeq = []
+#     # single_aeq = []
+#     # for (k, j) in idxs:
+#     #     print(k, " ", j)
+#     #     if i == k or i == j:
+#     #         single_aeq.append(1)
+#     #     else:
+#     #         single_aeq.append(0)
+#     for (k, j) in test2[i]:
+#         print(k, " ", j)
+#         if i == k or i == j:
+#             single_aeq.append(1)
+#         else:
+#             single_aeq.append(0)
+#     Aeq.append(single_aeq)
+
+# print(Aeq)
+
+
+    
             
     
     
