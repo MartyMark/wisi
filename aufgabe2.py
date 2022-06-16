@@ -5,8 +5,9 @@ from itertools import product, combinations, tee
 import matplotlib.pyplot as plt
 from scipy.optimize import linprog
 from scipy.sparse import csr_matrix
+import copy
 
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 
 
 class City:
@@ -68,12 +69,34 @@ def generate_Aeq():
     return Aeq
 
 
+#Plottet alle vorhanden Städte:
+def plotCities():
+    for i in range(len(cities)):
+        plt.scatter(cities[i].x, cities[i].y, s=10)
+        plt.annotate(i, (cities[i].x,cities[i].y))
+    
+
+#Pottet die herausgefunden Routen
+def plotRoutes(resX):
+   for index, el in enumerate(resX):
+       # print("Index:" , idx, "Value: ", x)
+       if round(el) == 1:
+           (c1,c2) = list_idxs[index]
+           lx = [cities[c1].x, cities[c2].x]
+           ly = [cities[c1].y, cities[c2].y]
+           plt.plot(lx,ly) 
+
+
 cities = generate_test_cities()  # generate_cities()
 cities_range = list(range(len(cities)))
 idxs = combinations(cities_range,2)
 
+
 dist = calculate_distance()
 print("Distanz:", dist)
+
+list_idxs = list(copy.deepcopy(idxs))
+
 
 Aeq = generate_Aeq() 
 print(Aeq)
@@ -82,7 +105,6 @@ print(csr_matrix(Aeq))
 beq = np.empty(len(cities))
 beq.fill(2)
 print(beq)
-
 
 # Ausgabe der einzelnen Punkte mit deren Koordinaten
 # for point in cities:
@@ -93,8 +115,20 @@ print(beq)
 # intcon -> Range von 1 bis Länge von dist
 # beq -> 1D Array 200 Lang nur mit 2
 # lb und ub
-
-        
-
 res = linprog(c=dist, A_eq=Aeq, b_eq=beq, bounds=(0, 1));
-print(res)
+
+# Zeichne den Graphen mit den Verbindungen
+plotCities()
+plotRoutes(res.x)
+
+plt.xlim(0, 1)
+plt.ylim(0, 1)
+
+plt.xlabel("x")
+plt.ylabel("y")
+
+plt.subplots_adjust(left=0.09,
+                    bottom=0.09,
+                    right=0.9,
+                    top=0.9)
+plt.show()
