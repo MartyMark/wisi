@@ -74,37 +74,8 @@ idxs = combinations(cities_range,2)
 dist = calculate_distance()
 print("Distanz:", dist)
 
-# def test():
-#     single_aeq = []
-#     for (k, j) in test2[]:
-#         print(k, " ", j)
-#         if i == k or i == j:
-#             single_aeq.append(1)
-#         else:
-#             single_aeq.append(0)
-#     return single_aeq
-
 Aeq = generate_Aeq() 
-print(Aeq)  
-# for i in range(len(cities)):
-#     print(i)
-#     single_aeq = []
-#     # single_aeq = []
-#     # for (k, j) in idxs:
-#     #     print(k, " ", j)
-#     #     if i == k or i == j:
-#     #         single_aeq.append(1)
-#     #     else:
-#     #         single_aeq.append(0)
-#     for (k, j) in test2[i]:
-#         print(k, " ", j)
-#         if i == k or i == j:
-#             single_aeq.append(1)
-#         else:
-#             single_aeq.append(0)
-#     Aeq.append(single_aeq)
-
-# print(Aeq)
+print(Aeq) 
 
 
     
