@@ -77,14 +77,13 @@ print("Distanz:", dist)
 
 Aeq = generate_Aeq() 
 print(Aeq)
-
 print(csr_matrix(Aeq))
 
+beq = np.empty(len(cities))
+beq.fill(2)
+print(beq)
 
-    
-            
-    
-    
+
 # Ausgabe der einzelnen Punkte mit deren Koordinaten
 # for point in cities:
 #     print("Punkt: {}: ({},{})".format(point.name, point.x, point.y))
@@ -95,7 +94,7 @@ print(csr_matrix(Aeq))
 # beq -> 1D Array 200 Lang nur mit 2
 # lb und ub
 
-# Aeq = [[1,1,1]
         
 
-# [x_tsp, costopt, exitflag, output] = linprog(dist, intcon, [], [], Aeq, beq, lb, ub, opts);
+res = linprog(c=dist, A_eq=Aeq, b_eq=beq, bounds=(0, 1));
+print(res)
