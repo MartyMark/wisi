@@ -7,6 +7,7 @@ from scipy.optimize import linprog
 from scipy.sparse import csr_matrix
 import copy
 
+
 # matplotlib.use('TkAgg')
 
 
@@ -44,57 +45,61 @@ def generate_cities():
 
 def calculate_distance():
     cities_distance = []
-    for (i,j) in combinations(cities_range,2):     
+    for (i, j) in combinations(cities_range, 2):
         distance = ((cities[i].x - cities[j].x) ** 2 + (
                 cities[i].y - cities[j].y) ** 2) ** 0.5
         print(distance)
         cities_distance.append(round(distance, 2))
-    
+
     return cities_distance
 
-def generate_Aeq():
-    Aeq = []   
-    iterIdxs = tee(idxs, len(cities))
+
+def generate_aeq():
+    aeq = []
+    iter_idxs = tee(idxs, len(cities))
     for i in range(len(cities)):
         single_aeq = []
-        for (k, j) in iterIdxs[i]:
+        for (k, j) in iter_idxs[i]:
             if i == k or i == j:
                 single_aeq.append(1)
             else:
                 single_aeq.append(0)
-        Aeq.append(single_aeq)
-    return Aeq
+        aeq.append(single_aeq)
+    return aeq
 
 
-#Plottet alle vorhanden Städte:
-def plotCities():
+# Plottet alle vorhanden Städte:
+def plot_cities():
     for i in range(len(cities)):
         plt.scatter(cities[i].x, cities[i].y, s=10)
-        plt.annotate(i, (cities[i].x,cities[i].y))
-    
-
-#Pottet die herausgefunden Routen
-def plotRoutes(resX):
-   for index, el in enumerate(resX):
-       # print("Index:" , idx, "Value: ", x)
-       if round(el) == 1:
-           (c1,c2) = list_idxs[index]
-           lx = [cities[c1].x, cities[c2].x]
-           ly = [cities[c1].y, cities[c2].y]
-           plt.plot(lx,ly) 
+        plt.annotate(i, (cities[i].x, cities[i].y))
 
 
-cities = generate_cities() #generate_test_cities()
+# Plottet die herausgefunden Routen
+def plot_routes(res_x):
+    for index, el in enumerate(res_x):
+        # print("Index:" , idx, "Value: ", x)
+        if round(el) == 1:
+            (c1, c2) = list_idxs[index]
+            lx = [cities[c1].x, cities[c2].x]
+            ly = [cities[c1].y, cities[c2].y]
+            plt.plot(lx, ly)
+
+
+def find_subtoures():
+    print(123)
+
+
+cities = generate_cities()  # generate_test_cities()
 cities_range = list(range(len(cities)))
-idxs = combinations(cities_range,2)
-
+idxs = combinations(cities_range, 2)
 
 dist = calculate_distance()
 print("Distanz:", dist)
 
 list_idxs = list(copy.deepcopy(idxs))
 
-Aeq = generate_Aeq() 
+Aeq = generate_aeq()
 print("Aeq ungesparsed: ", Aeq)
 
 Aeq = csr_matrix(Aeq)
@@ -109,12 +114,12 @@ print("Beq: ", beq)
 # intcon -> Range von 1 bis Länge von dist
 # beq -> 1D Array 200 Lang nur mit 2
 # lb und ub
-res = linprog(c=dist, A_eq=Aeq, b_eq=beq, bounds=(0, 1), options={'sparse':True});
+res = linprog(c=dist, A_eq=Aeq, b_eq=beq, bounds=(0, 1), options={'sparse': True})
 print(res)
 
 # Zeichne den Graphen mit den Verbindungen
-plotCities()
-plotRoutes(res.x)
+plot_cities()
+plot_routes(res.x)
 
 plt.xlim(0, 1)
 plt.ylim(0, 1)
