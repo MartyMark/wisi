@@ -32,7 +32,7 @@ def generate_test_cities():
 def generate_cities():
     cities_temp = []
 
-    city_count = np.random.randint(low=19, high=20)
+    city_count = np.random.randint(low=15, high=20)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
@@ -86,8 +86,32 @@ def plot_routes(res_x):
             plt.plot(lx, ly)
 
 
-def find_subtoures():
-    print(123)
+def find_subtoures(res_x):
+    filtered_routes = []
+
+    for index, el in enumerate(copy.deepcopy(res_x)):
+        if round(el) == 1:
+            filtered_routes.append(list_idxs[index])
+
+    subtoures = []
+
+    tour_idxs_temp = np.zeros(len(cities))
+
+    while len(filtered_routes) > 0:
+        subtoures.append([filtered_routes[0]])
+        filtered_routes.pop(0)
+
+        for idx, subtour in enumerate(subtoures):
+            for subtour_x, subtour_y in subtour:
+                for (c1, c2) in filtered_routes:
+                    if subtour_x == c1 or subtour_x == c2 or subtour_y == c1 or subtour_y == c2:
+                        subtour.append((c1, c2))
+                        filtered_routes.remove((c1, c2))
+
+                        tour_idxs_temp[c1] = idx+1
+                        tour_idxs_temp[c2] = idx+1
+
+    return tour_idxs_temp
 
 
 cities = generate_cities()  # generate_test_cities()
@@ -132,3 +156,5 @@ plt.subplots_adjust(left=0.09,
                     right=0.9,
                     top=0.9)
 plt.show()
+
+tour_idxs = find_subtoures(res.x)
