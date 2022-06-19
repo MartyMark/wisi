@@ -194,7 +194,7 @@ while len(subtours) > 1:
                 subtours.append(single_subtour)
     print("ANZAHL SUBTOUREN: ", len(subtours))
 
-print("Wegkosten: ", m.objective_values)
+print("Wegkosten: ", m.objective_value)
 lx = []
 ly = []
 fig2 = plt.figure("Without Subtours")
