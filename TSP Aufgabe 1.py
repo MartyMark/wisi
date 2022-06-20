@@ -30,7 +30,7 @@ def generate_test_cities():
 def generate_cities():
     cities_temp = []
 
-    city_count = np.random.randint(low=12, high=13)
+    city_count = np.random.randint(low=10, high=11)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
@@ -132,7 +132,7 @@ if m.num_solutions:
                         break
                 lx.append(cities[nc].x)
                 ly.append(cities[nc].y)
-                plt.plot(lx,ly) 
+                plt.plot(lx,ly)
                 print(' -> Zu Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
                 bbs.append(nc)
                 single_subtour.append(nc)
@@ -142,4 +142,6 @@ if m.num_solutions:
 
 print("INITIALE ANZAHL SUBTOUREN: ", len(subtours))
 print("Wegkosten: ", m.objective_value)
+
+plt.show()
 

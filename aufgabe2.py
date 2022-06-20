@@ -32,7 +32,7 @@ def generate_test_cities():
 def generate_cities():
     cities_temp = []
 
-    city_count = np.random.randint(low=15, high=20)
+    city_count = np.random.randint(low=9, high=10)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
@@ -108,10 +108,16 @@ def find_subtoures(res_x):
                         subtour.append((c1, c2))
                         filtered_routes.remove((c1, c2))
 
-                        tour_idxs_temp[c1] = idx+1
-                        tour_idxs_temp[c2] = idx+1
+                        tour_idxs_temp[c1] = idx + 1
+                        tour_idxs_temp[c2] = idx + 1
 
     return tour_idxs_temp
+
+
+def plot_with_subtoures():
+    plt.figure('With Subtoures')
+    plot_cities()
+    plot_routes(res.x)
 
 
 cities = generate_cities()  # generate_test_cities()
@@ -142,8 +148,43 @@ res = linprog(c=dist, A_eq=Aeq, b_eq=beq, bounds=(0, 1), options={'sparse': True
 print(res)
 
 # Zeichne den Graphen mit den Verbindungen
-plot_cities()
-plot_routes(res.x)
+plot_with_subtoures()
+
+tour_idxs = find_subtoures(res.x)
+num_tours = int(max(tour_idxs))
+print('Anzahl von Subtouren:', num_tours)
+
+while num_tours > 1:
+    A = []
+    b = np.zeros(num_tours * 2, dtype=int)
+
+    for li in range(1, num_tours + 1):
+        rowIdx = num_tours + li - 1
+        sub_tour_idx = [i for i, elem in enumerate(tour_idxs) if tour_idxs[i] == li]
+        variations = combinations(sub_tour_idx, 2)
+
+        whichVar = np.zeros(len(list_idxs))
+
+        for sub_tour_city_pair in variations:
+            result = list(filter(lambda x: x[0] == sub_tour_city_pair[0] and x[1] == sub_tour_city_pair[1], list_idxs))
+
+            index = list_idxs.index(sub_tour_city_pair)
+
+            whichVar[index] = 1
+
+        A.append(whichVar)
+        b[rowIdx] = len(sub_tour_idx) - 1
+
+    A = csr_matrix(A)
+
+    print(A)
+    print(b)
+
+    res = linprog(c=dist, A_ub=A, b_ub=b, A_eq=Aeq, b_eq=beq, bounds=(0, 1), options={'sparse': True})
+
+    tour_idxs = find_subtoures(res.x)
+
+    num_tours = int(max(tour_idxs))
 
 plt.xlim(0, 1)
 plt.ylim(0, 1)
@@ -155,6 +196,5 @@ plt.subplots_adjust(left=0.09,
                     bottom=0.09,
                     right=0.9,
                     top=0.9)
-plt.show()
 
-tour_idxs = find_subtoures(res.x)
+plt.show()
