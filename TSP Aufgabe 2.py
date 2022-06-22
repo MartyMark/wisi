@@ -104,8 +104,8 @@ for i in set(cities_range):
     m += mip.xsum(x[i][j] for j in cities_range_reduced) == 1
     
 # Zusätzliche Nebenbedingunge, um Subtouren mit nur 2 Städten zu verhindern
-for (i, j) in routes:
-    m += x[i][j] + x[j][i] <= 1
+# for (i, j) in routes:
+#     m += x[i][j] + x[j][i] <= 1
 
 y = [m.add_var() for z in cities_range]
 
