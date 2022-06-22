@@ -1,23 +1,39 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import matplotlib
 import mip as mip
 import numpy as np
-from itertools import product, chain, combinations
+from itertools import chain, combinations
 import matplotlib.pyplot as plt
-import copy
 
 
 class City:
+    """
+    Represents a city.
+
+    Attributes
+    ----------
+    x_coordinate : str
+        X coordinate between 0 and 1
+    y_coordinate : str
+        Y coordinate between 0 and 1
+    name : int
+        Name of the city displayed as int
+    """
+
     def __init__(self, x_coordinate, y_coordinate, name):
         self.x = x_coordinate
         self.y = y_coordinate
         self.name = name
 
 
-# Generiert statische Testdaten
 def generate_test_cities():
+    """
+    Generates static test data.
+
+    Returns:
+        cities (array): 4 Cities
+    """
     return [
         City(0.1, 0.1, 0),
         City(0.1, 0.6, 1),
@@ -26,101 +42,148 @@ def generate_test_cities():
     ]
 
 
-# Generiert die Städte, die die x und y-Koordinate zwischen 0 und 1 beinhalten
 def generate_cities():
+    """
+    Generates the cities containing the x and y coordinate between 0 and 1.
+
+    Returns:
+        cities_temp (list): Randomly generated cities
+    """
     cities_temp = []
 
-    city_count = np.random.randint(low=10, high=11)
+    city_count = np.random.randint(low=11, high=12)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
         y_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
-        
+
         cities_temp.append(City(x_coordinate, y_coordinate, n))
 
     return cities_temp
 
-# Generiert die Distanzmatrix (c)
-def calculate_distance(cities_list):
+
+def calculate_distance(cities):
+    """
+    Generates the distance matrix.
+
+    Parameters:
+        cities (list): Generated cities
+
+    Returns:
+        cities_temp (list): Randomly generated cities
+    """
     cities_distance = []
 
-    for i in range(len(cities_list)):
+    for i in range(len(cities)):
 
         city_distance = []
 
-        for j in range(len(cities_list)):
+        for j in range(len(cities)):
 
             if i == j:
                 city_distance.append(0)
             else:
-                distance = ((cities_list[i].x - cities_list[j].x) ** 2 + (
-                        cities_list[i].y - cities_list[j].y) ** 2) ** 0.5
+                distance = ((cities[i].x - cities[j].x) ** 2 + (
+                        cities[i].y - cities[j].y) ** 2) ** 0.5
                 city_distance.append(round(distance, 2))
 
         cities_distance.append(city_distance)
 
     return cities_distance
 
-#Finde alle möglichen Subtouren die es geben kann.
-def findAllPossibleSubtours(iter):
-    "Subtour([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
-    s = list(iter)
-    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
-cities = generate_cities() #generate_test_cities()  # generate_cities()
-c = calculate_distance(cities)
-nCities = set(range(len(cities)))
+def find_all_possible_subtours(cities):
+    """
+    Find all possible subtours that can exist.
 
-DFsubtours = list(findAllPossibleSubtours(range(len(nCities))))
-DFsubtours = DFsubtours[1:(len(DFsubtours)-1)]
+    Parameters:
+       cities (list): Generated cities
 
-cities_range = range(len(c))
+    Returns:
+       subtours (list): all possible subtours
+    """
+    cities_range = list(range(len(cities)))
+
+    """
+    For example, if there are 3 cities, the following combination list is formed:
+    [() (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)]
+    """
+    subtoures = list(chain.from_iterable(combinations(cities_range, r) for r in range(len(cities_range) + 1)))
+
+    """The last subtour is the subtour where all the points are in it"""
+    return subtoures[1:(len(subtoures) - 1)]
+
+
+cities = generate_cities()
+distance_matrix = calculate_distance(cities)
+
+"""If there are 10 cities a range is generated: (0, 10)"""
+cities_range = range(len(distance_matrix))
 
 m = mip.Model()
 
+"""Indicating if the Cities (i,j) is used on the route or not"""
 x = [[m.add_var(var_type=mip.BINARY) for j in cities_range] for i in cities_range]
 
+"""
+Constraints
+----------
+Here, each line is considered iteratively and it is checked that each city is approached only once.
+
+Here we iterate per line always from left to right.
+For 4 cities it reads: list(cities_range) -> [0, 1, 2, 3]
+# cities_range_reduced with i = 0 -> [1, 2, 3]
+# cities_range_reduced with i = 1 -> [0, 2, 3]
+
+# This results in the following matrix:
+
+# NUL x11 x12 x13
+# x11 NUL x22 x23
+# x12 x22 NUL x33
+# x13 x23 x33 NUL
+"""
 for i in list(cities_range):
     cities_range_reduced = list(cities_range).copy()
     cities_range_reduced.remove(i)
 
     m += mip.xsum(x[j][i] for j in cities_range_reduced) == 1
-    
-# Selbe wie oben, nur spaltenweise
+
+"""Here, each line is considered iteratively and it is checked that each city is entered only once"""
 for i in set(cities_range):
     cities_range_reduced = list(cities_range).copy()
     cities_range_reduced.remove(i)
 
     m += mip.xsum(x[i][j] for j in cities_range_reduced) == 1
 
-#Für jede mögliche Subtour, lege die Regel fest, dass es niemals genauso viele oder mehr 
-#Routen wie Städte in der Subtour geben kann. Dadurch ist gewähleistet, dass keine Subtour
-#entstehen kann.    
-for S in DFsubtours:
-    m += mip.xsum(x[i][j] for i in S for j in S) <= len(S)-1
+subtoures = find_all_possible_subtours(cities)
+"""
+For each possible subtour, set the rule that there can never be as many or more routes as cities in the subtour.
+This ensures that no subtour can be occurred.
+"""
+for S in subtoures:
+    m += mip.xsum(x[i][j] for i in S for j in S) <= len(S) - 1
 
-y = [m.add_var() for z in cities_range]
-
-m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
+"""Function to minimize the distance"""
+m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
 status = m.optimize()
 
 fig1 = plt.figure("Optimal Route")
-plt.title("Optimalste Route")
+plt.title("Optimal Route")
 for idx, city in enumerate(cities):
     plt.scatter(city.x, city.y, s=10)
-    plt.annotate(idx, (city.x,city.y))
-    
+    plt.annotate(idx, (city.x, city.y))
+
 subtours = []
 if m.num_solutions:
     bbs = []
     for idx, city in enumerate(cities):
         single_subtour = []
         if idx in bbs:
-            print("Stadt {} schon in einer Subtour besucht.".format(idx));
+            print("City {} already visited in a subtour.".format(idx))
         else:
             nc = idx
             print('Subtour {}:'.format(idx))
-            print(' -> Von Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
+            print(' -> From Point: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
             bbs.append(nc)
             single_subtour.append(nc)
             while True:
@@ -132,16 +195,15 @@ if m.num_solutions:
                         break
                 lx.append(cities[nc].x)
                 ly.append(cities[nc].y)
-                plt.plot(lx,ly)
-                print(' -> Zu Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
+                plt.plot(lx, ly)
+                print(' -> To Point: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
                 bbs.append(nc)
                 single_subtour.append(nc)
                 if nc == idx:
                     break
             subtours.append(single_subtour)
 
-print("INITIALE ANZAHL SUBTOUREN: ", len(subtours))
-print("Wegkosten: ", m.objective_value)
+print("Number of subtoures: ", len(subtours))
+print("Road costs: ", m.objective_value)
 
 plt.show()
-
