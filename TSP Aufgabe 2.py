@@ -6,6 +6,7 @@ import mip as mip
 import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
+import copy
 
 
 class City:
@@ -160,15 +161,10 @@ while len(subtours) > 1:
     for subt in subtours:
         single_subt = list(subt.copy())
         single_subt.pop()
-        cp = mip.CutPool()
-        city_pairs = [(i, j) for (i, j) in product(single_subt, single_subt) if i != j]
-        for (i, j) in product(single_subt, single_subt):
-            if i != j:
-                cut = mip.xsum(x[i][j] for (i, j) in city_pairs) <= len(single_subt) - 1
-                cp.add(cut)
-        
-        for cut in cp.cuts:
-            m += cut
+        fullTour = copy.deepcopy(cities_range)
+        not_in_S = set(fullTour) - set(tuple(single_subt))
+        if(len(single_subt) >= 2 and len(single_subt) <= len(fullTour) - 2):
+            m += mip.xsum(x[i][j] for i in tuple(single_subt) for j in not_in_S) >= 1
         
     m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
     status = m.optimize()
@@ -208,3 +204,4 @@ for sub in subtours[0]:
     ly.append(cities[sub].y)
 plt.plot(lx,ly) 
 plt.show()
+

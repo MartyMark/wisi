@@ -5,6 +5,7 @@ import mip as mip
 import numpy as np
 from itertools import chain, combinations
 import matplotlib.pyplot as plt
+import copy
 
 
 class City:
@@ -108,10 +109,7 @@ def find_all_possible_subtours(cities):
     For example, if there are 3 cities, the following combination list is formed:
     [() (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)]
     """
-    subtoures = list(chain.from_iterable(combinations(cities_range, r) for r in range(len(cities_range) + 1)))
-
-    """The last subtour is the subtour where all the points are in it"""
-    return subtoures[1:(len(subtoures) - 1)]
+    return list(chain.from_iterable(combinations(cities_range, r) for r in range(len(cities_range) + 1)))
 
 
 cities = generate_cities()
@@ -156,12 +154,19 @@ for i in set(cities_range):
     m += mip.xsum(x[i][j] for j in cities_range_reduced) == 1
 
 subtoures = find_all_possible_subtours(cities)
+"""The last subtour is the subtour where all the points are in it"""
+fullTour = copy.deepcopy(subtoures[-1])
+subtoures = subtoures[1:(len(subtoures) - 1)]
+
 """
 For each possible subtour, set the rule that there can never be as many or more routes as cities in the subtour.
 This ensures that no subtour can be occurred.
 """
 for S in subtoures:
-    m += mip.xsum(x[i][j] for i in S for j in S) <= len(S) - 1
+    b = copy.deepcopy(S)
+    not_in_S = set(fullTour) - set(b)
+    if(len(S) >= 2 and len(S) <= len(fullTour) - 2):
+        m += mip.xsum(x[i][j] for i in S for j in not_in_S) >= 1
 
 """Function to minimize the distance"""
 m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
@@ -207,3 +212,4 @@ print("Number of subtoures: ", len(subtours))
 print("Road costs: ", m.objective_value)
 
 plt.show()
+
