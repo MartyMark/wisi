@@ -109,10 +109,10 @@ def find_all_possible_subtours(cities):
     cities_range = list(range(len(cities)))
 
     """
-    For example, if there are 3 cities, the following combination list is formed:
+    Example output for 3 Cities:
     [() (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)]
     """
-    return list(chain.from_iterable(combinations(cities_range, r) for r in range(len(cities_range) + 1)))
+    return list(chain.from_iterable(combinations(cities_range, e) for e in range(len(cities_range) + 1)))
 
 
 def eval_f(t, x):
