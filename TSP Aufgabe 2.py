@@ -30,16 +30,17 @@ def generate_test_cities():
 def generate_cities():
     cities_temp = []
 
-    city_count = np.random.randint(low=49, high=50)
+    city_count = np.random.randint(low=10, high=11)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
         y_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
-        
+
         plt.scatter(x_coordinate, y_coordinate, s=10)
         cities_temp.append(City(x_coordinate, y_coordinate, n))
 
     return cities_temp
+
 
 # Generiert die Distanzmatrix (c)
 def calculate_distance(cities_list):
@@ -62,7 +63,8 @@ def calculate_distance(cities_list):
 
     return cities_distance
 
-cities = generate_cities() #generate_test_cities()  # generate_cities()
+
+cities = generate_cities()  # generate_test_cities()  # generate_cities()
 c = calculate_distance(cities)
 nCities = set(range(len(cities)))
 
@@ -95,14 +97,14 @@ for i in list(cities_range):
     cities_range_reduced.remove(i)
 
     m += mip.xsum(x[j][i] for j in cities_range_reduced) == 1
-    
+
 # Selbe wie oben, nur spaltenweise
 for i in set(cities_range):
     cities_range_reduced = list(cities_range).copy()
     cities_range_reduced.remove(i)
 
     m += mip.xsum(x[i][j] for j in cities_range_reduced) == 1
-    
+
 # Zusätzliche Nebenbedingunge, um Subtouren mit nur 2 Städten zu verhindern
 # for (i, j) in routes:
 #     m += x[i][j] + x[j][i] <= 1
@@ -113,11 +115,11 @@ m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for 
 status = m.optimize()
 
 fig1 = plt.figure("With Subtours")
-plt.title("Tour mit Subtouren")
+plt.title("Tour with Subtours")
 for idx, city in enumerate(cities):
     plt.scatter(city.x, city.y, s=10)
-    plt.annotate(idx, (city.x,city.y))
-    
+    plt.annotate(idx, (city.x, city.y))
+
 subtours = []
 if m.num_solutions:
     bbs = []
@@ -140,7 +142,7 @@ if m.num_solutions:
                         break
                 lx.append(cities[nc].x)
                 ly.append(cities[nc].y)
-                plt.plot(lx,ly) 
+                plt.plot(lx, ly)
                 # print(' -> Zu Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
                 bbs.append(nc)
                 single_subtour.append(nc)
@@ -150,14 +152,14 @@ if m.num_solutions:
 
 print("INITIALE ANZAHL SUBTOUREN: ", len(subtours))
 
-#Solange es mehr als eine Subtour gibt, füge einen Cut in den Cutpool hinzu. 
-#Cutpool ist eine Funktion von MIP womit, Nebenbedingungen später und bei Bedarf
-#zum Model hinzugefügt werden können.
+# Solange es mehr als eine Subtour gibt, füge einen Cut in den Cutpool hinzu.
+# Cutpool ist eine Funktion von MIP womit, Nebenbedingungen später und bei Bedarf
+# zum Model hinzugefügt werden können.
 
-#In dieser Funktion werden immer für alle Citypaare und deren Routen herausgesucht
-#die mit der jeweiligen Subtour zu tun haben und für die wird dann die Nebenbedingung
-#hinzugefügt
-while len(subtours) > 1: 
+# In dieser Funktion werden immer für alle Citypaare und deren Routen herausgesucht
+# die mit der jeweiligen Subtour zu tun haben und für die wird dann die Nebenbedingung
+# hinzugefügt
+while len(subtours) > 1:
     for subt in subtours:
         single_subt = list(subt.copy())
         single_subt.pop()
@@ -165,10 +167,10 @@ while len(subtours) > 1:
         for (i, j) in city_pairs:
             if i != j:
                 m += mip.xsum(x[i][j] for (i, j) in city_pairs) <= len(single_subt) - 1
-        
+
     m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
     status = m.optimize()
-    
+
     subtours = []
     if m.num_solutions:
         bbs = []
@@ -197,11 +199,10 @@ fig2 = plt.figure("Without Subtours")
 plt.title("Tour ohne Subtouren")
 for idx, city in enumerate(cities):
     plt.scatter(city.x, city.y, s=10)
-    plt.annotate(idx, (city.x,city.y))
-    
+    plt.annotate(idx, (city.x, city.y))
+
 for sub in subtours[0]:
     lx.append(cities[sub].x)
     ly.append(cities[sub].y)
-plt.plot(lx,ly) 
+plt.plot(lx, ly)
 plt.show()
-

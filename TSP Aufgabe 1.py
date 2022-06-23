@@ -55,7 +55,7 @@ def generate_cities():
     """
     cities_temp = []
 
-    city_count = np.random.randint(low=7, high=8)
+    city_count = np.random.randint(low=5, high=10)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
@@ -226,11 +226,6 @@ print("Road costs: ", m.objective_value)
 
 end = time.time()
 
-plt.figure("Runtime analysis")
-plt.title("Runtime analysis")
-plt.xlabel("Cities")
-plt.ylabel("Time")
-
 """After the run the number of cities and the runtime is written to a csv (TSP Aufgabe 1 data.csv)"""
 with open('TSP Aufgabe 1 data.csv', 'a', newline='') as f:
     writer = csv.writer(f)
@@ -245,19 +240,27 @@ with open('TSP Aufgabe 1 data.csv', 'r', newline='') as f:
     for row in reader:
         rows.append(row)
 
-    rows.sort(key=lambda x: int(x[0]))
+    if(len(rows)) > 3:
+        plt.figure("Runtime analysis")
+        plt.title("Runtime analysis")
+        plt.xlabel("Cities")
+        plt.ylabel("Time")
 
-    cities = np.array([])
-    times = np.array([])
-    for row in rows:
-        cities = np.append(cities, int(row[0]))
-        times = np.append(times, float(row[1]))
+        rows.sort(key=lambda x: int(x[0]))
 
-    x0 = np.array([0.7, 0.7])
-    x, flag = leastsq(residuals, x0, args=(times, cities))
+        cities = np.array([])
+        times = np.array([])
+        for row in rows:
+            cities = np.append(cities, int(row[0]))
+            times = np.append(times, float(row[1]))
 
-    y_pred = eval_f(cities, x)
+        x0 = np.array([0.7, 0.7])
+        x, flag = leastsq(residuals, x0, args=(times, cities))
 
-    plt.scatter(cities, times, color='red')
-    plt.plot(cities, y_pred)
-    plt.show()
+        y_pred = eval_f(cities, x)
+
+        plt.scatter(cities, times, color='red')
+        plt.plot(cities, y_pred)
+
+plt.show()
+
