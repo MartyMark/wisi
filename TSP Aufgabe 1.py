@@ -3,9 +3,12 @@
 
 import mip as mip
 import numpy as np
+from scipy.optimize import leastsq
 from itertools import chain, combinations
 import matplotlib.pyplot as plt
 import copy
+import time
+import csv
 
 
 class City:
@@ -52,7 +55,7 @@ def generate_cities():
     """
     cities_temp = []
 
-    city_count = np.random.randint(low=11, high=12)
+    city_count = np.random.randint(low=7, high=8)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
@@ -112,6 +115,16 @@ def find_all_possible_subtours(cities):
     return list(chain.from_iterable(combinations(cities_range, r) for r in range(len(cities_range) + 1)))
 
 
+def eval_f(t, x):
+    return x[0] * np.exp(-x[1] * t)
+
+
+def residuals(x, y, t):
+    return eval_f(t, x) - y
+
+
+start = time.time()
+
 cities = generate_cities()
 distance_matrix = calculate_distance(cities)
 
@@ -165,7 +178,7 @@ This ensures that no subtour can be occurred.
 for S in subtoures:
     b = copy.deepcopy(S)
     not_in_S = set(fullTour) - set(b)
-    if(len(S) >= 2 and len(S) <= len(fullTour) - 2):
+    if 2 <= len(S) <= len(fullTour) - 2:
         m += mip.xsum(x[i][j] for i in S for j in not_in_S) >= 1
 
 """Function to minimize the distance"""
@@ -211,5 +224,40 @@ if m.num_solutions:
 print("Number of subtoures: ", len(subtours))
 print("Road costs: ", m.objective_value)
 
-plt.show()
+end = time.time()
 
+plt.figure("Runtime analysis")
+plt.title("Runtime analysis")
+plt.xlabel("Cities")
+plt.ylabel("Time")
+
+"""After the run the number of cities and the runtime is written to a csv (TSP Aufgabe 1 data.csv)"""
+with open('TSP Aufgabe 1 data.csv', 'a', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow([len(cities), round(end - start, 2)])
+
+"""The data of the csv (TSP Aufgabe 1 data.csv) are displayed in a graph, which shows the runtime analysis"""
+with open('TSP Aufgabe 1 data.csv', 'r', newline='') as f:
+    reader = csv.reader(f)
+
+    rows = []
+
+    for row in reader:
+        rows.append(row)
+
+    rows.sort(key=lambda x: int(x[0]))
+
+    cities = np.array([])
+    times = np.array([])
+    for row in rows:
+        cities = np.append(cities, int(row[0]))
+        times = np.append(times, float(row[1]))
+
+    x0 = np.array([0.7, 0.7])
+    x, flag = leastsq(residuals, x0, args=(times, cities))
+
+    y_pred = eval_f(cities, x)
+
+    plt.scatter(cities, times, color='red')
+    plt.plot(cities, y_pred)
+    plt.show()
