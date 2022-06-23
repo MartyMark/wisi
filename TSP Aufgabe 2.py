@@ -161,10 +161,10 @@ while len(subtours) > 1:
     for subt in subtours:
         single_subt = list(subt.copy())
         single_subt.pop()
-        fullTour = copy.deepcopy(cities_range)
-        not_in_S = set(fullTour) - set(tuple(single_subt))
-        if(len(single_subt) >= 2 and len(single_subt) <= len(fullTour) - 2):
-            m += mip.xsum(x[i][j] for i in tuple(single_subt) for j in not_in_S) >= 1
+        city_pairs = [(i, j) for (i, j) in product(single_subt, single_subt) if i != j]
+        for (i, j) in city_pairs:
+            if i != j:
+                m += mip.xsum(x[i][j] for (i, j) in city_pairs) <= len(single_subt) - 1
         
     m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
     status = m.optimize()
