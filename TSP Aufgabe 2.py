@@ -1,15 +1,28 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import matplotlib
 import mip as mip
 import numpy as np
 from itertools import product
+from scipy.optimize import leastsq
 import matplotlib.pyplot as plt
-import copy
+import time
+import csv
 
 
 class City:
+    """
+    Represents a city.
+
+    Attributes
+    ----------
+    x_coordinate : str
+        X coordinate between 0 and 1
+    y_coordinate : str
+        Y coordinate between 0 and 1
+    name : int
+        Name of the city displayed as int
+    """
     def __init__(self, x_coordinate, y_coordinate, name):
         self.x = x_coordinate
         self.y = y_coordinate
@@ -30,13 +43,12 @@ def generate_test_cities():
 def generate_cities():
     cities_temp = []
 
-    city_count = np.random.randint(low=10, high=11)
+    city_count = np.random.randint(low=5, high=50)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
         y_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
 
-        plt.scatter(x_coordinate, y_coordinate, s=10)
         cities_temp.append(City(x_coordinate, y_coordinate, n))
 
     return cities_temp
@@ -64,6 +76,14 @@ def calculate_distance(cities_list):
     return cities_distance
 
 
+def eval_f(t, x):
+    return x[0] * np.exp(-x[1] * t)
+
+
+def residuals(x, y, t):
+    return eval_f(t, x) - y
+
+
 cities = generate_cities()  # generate_test_cities()  # generate_cities()
 c = calculate_distance(cities)
 nCities = set(range(len(cities)))
@@ -75,6 +95,8 @@ print(np.matrix(c))
 cities_range = range(len(c))
 
 m = mip.Model()
+
+start = time.time()
 
 x = [[m.add_var(var_type=mip.BINARY) for j in cities_range] for i in cities_range]
 
@@ -193,6 +215,9 @@ while len(subtours) > 1:
     print("ANZAHL SUBTOUREN: ", len(subtours))
 
 print("Wegkosten: ", m.objective_value)
+
+end = time.time()
+
 lx = []
 ly = []
 fig2 = plt.figure("Without Subtours")
@@ -204,5 +229,43 @@ for idx, city in enumerate(cities):
 for sub in subtours[0]:
     lx.append(cities[sub].x)
     ly.append(cities[sub].y)
+
 plt.plot(lx, ly)
+
+"""After the run the number of cities and the runtime is written to a csv (TSP Aufgabe 2 data.csv)"""
+with open('TSP Aufgabe 2 data.csv', 'a', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow([len(cities), round(end - start, 2)])
+
+"""The data of the csv (TSP Aufgabe 2 data.csv) are displayed in a graph, which shows the runtime analysis"""
+with open('TSP Aufgabe 2 data.csv', 'r', newline='') as f:
+    reader = csv.reader(f)
+
+    rows = []
+
+    for row in reader:
+        rows.append(row)
+
+    if (len(rows)) > 3:
+        plt.figure("Runtime analysis")
+        plt.title("Runtime analysis")
+        plt.xlabel("Cities")
+        plt.ylabel("Time")
+
+        rows.sort(key=lambda x: int(x[0]))
+
+        cities = np.array([])
+        times = np.array([])
+        for row in rows:
+            cities = np.append(cities, int(row[0]))
+            times = np.append(times, float(row[1]))
+
+        x0 = np.array([0.7, 0.7])
+        x, flag = leastsq(residuals, x0, args=(times, cities))
+
+        y_pred = eval_f(cities, x)
+
+        plt.scatter(cities, times, color='red')
+        plt.plot(cities, y_pred)
+
 plt.show()

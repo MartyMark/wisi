@@ -24,7 +24,6 @@ class City:
     name : int
         Name of the city displayed as int
     """
-
     def __init__(self, x_coordinate, y_coordinate, name):
         self.x = x_coordinate
         self.y = y_coordinate
@@ -123,8 +122,6 @@ def residuals(x, y, t):
     return eval_f(t, x) - y
 
 
-start = time.time()
-
 cities = generate_cities()
 distance_matrix = calculate_distance(cities)
 
@@ -132,6 +129,8 @@ distance_matrix = calculate_distance(cities)
 cities_range = range(len(distance_matrix))
 
 m = mip.Model()
+
+start = time.time()
 
 """Indicating if the Cities (i,j) is used on the route or not"""
 x = [[m.add_var(var_type=mip.BINARY) for j in cities_range] for i in cities_range]
@@ -240,7 +239,7 @@ with open('TSP Aufgabe 1 data.csv', 'r', newline='') as f:
     for row in reader:
         rows.append(row)
 
-    if(len(rows)) > 3:
+    if (len(rows)) > 3:
         plt.figure("Runtime analysis")
         plt.title("Runtime analysis")
         plt.xlabel("Cities")
@@ -263,4 +262,3 @@ with open('TSP Aufgabe 1 data.csv', 'r', newline='') as f:
         plt.plot(cities, y_pred)
 
 plt.show()
-
