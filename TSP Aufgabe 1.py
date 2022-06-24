@@ -185,13 +185,14 @@ for S in subtoures:
 m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
 status = m.optimize()
 
+"""Plot the cities"""
 fig1 = plt.figure("Optimal Route")
 plt.title("Optimal Route")
 for idx, city in enumerate(cities):
     plt.scatter(city.x, city.y, s=10)
     plt.annotate(idx, (city.x, city.y))
 
-
+"""Here all existing subtours are selected and the routes between the cities are plotted."""
 subtours = []
 if m.num_solutions:
     already_visited_subtour = []

@@ -156,6 +156,7 @@ for idx, city in enumerate(cities):
     plt.scatter(city.x, city.y, s=10)
     plt.annotate(idx, (city.x, city.y))
 
+"""Here all existing subtours are selected and the routes between the cities are plotted."""
 subtours = []
 if m.num_solutions:
     bbs = []
@@ -185,9 +186,8 @@ if m.num_solutions:
 # Cutpool ist eine Funktion von MIP womit, Nebenbedingungen später und bei Bedarf
 # zum Model hinzugefügt werden können.
 
-# In dieser Funktion werden immer für alle Citypaare und deren Routen herausgesucht
-# die mit der jeweiligen Subtour zu tun haben und für die wird dann die Nebenbedingung
-# hinzugefügt
+# Es werden citypaare rausgesucht, die mit einer Strecke der subtour verbunden sind.
+# Dabei werden alle unterschiedlichen Paare von einer subtour erhalten, worauf dann die Bedingung angewendet wird
 while len(subtours) > 1:
     for subt in subtours:
         single_subt = list(subt.copy())
@@ -200,6 +200,7 @@ while len(subtours) > 1:
     m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
     status = m.optimize()
 
+    """Here all existing subtours are selected and the routes between the cities are plotted."""
     subtours = []
     if m.num_solutions:
         bbs = []
@@ -240,9 +241,9 @@ for sub in subtours[0]:
 plt.plot(lx, ly)
 
 """After the run the number of cities and the runtime is written to a csv (TSP Aufgabe 2 data.csv)"""
-#with open('TSP Aufgabe 2 data.csv', 'a', newline='') as f:
-#    writer = csv.writer(f)
-#    writer.writerow([len(cities), round(end - start, 2)])
+with open('TSP Aufgabe 2 data.csv', 'a', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow([len(cities), round(end - start, 2)])
 
 """The data of the csv (TSP Aufgabe 2 data.csv) are displayed in a graph, which shows the runtime analysis"""
 with open('TSP Aufgabe 2 data.csv', 'r', newline='') as f:
