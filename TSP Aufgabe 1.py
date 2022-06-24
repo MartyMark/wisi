@@ -24,6 +24,7 @@ class City:
     name : int
         Name of the city displayed as int
     """
+
     def __init__(self, x_coordinate, y_coordinate, name):
         self.x = x_coordinate
         self.y = y_coordinate
@@ -190,18 +191,15 @@ for idx, city in enumerate(cities):
     plt.scatter(city.x, city.y, s=10)
     plt.annotate(idx, (city.x, city.y))
 
+
 subtours = []
 if m.num_solutions:
-    bbs = []
+    already_visited_subtour = []
     for idx, city in enumerate(cities):
         single_subtour = []
-        if idx in bbs:
-            print("City {} already visited in a subtour.".format(idx))
-        else:
+        if idx not in already_visited_subtour:
             nc = idx
-            print('Subtour {}:'.format(idx))
-            print(' -> From Point: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
-            bbs.append(nc)
+            already_visited_subtour.append(nc)
             single_subtour.append(nc)
             while True:
                 lx = [cities[nc].x]
@@ -213,8 +211,7 @@ if m.num_solutions:
                 lx.append(cities[nc].x)
                 ly.append(cities[nc].y)
                 plt.plot(lx, ly)
-                print(' -> To Point: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
-                bbs.append(nc)
+                already_visited_subtour.append(nc)
                 single_subtour.append(nc)
                 if nc == idx:
                     break

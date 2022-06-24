@@ -29,8 +29,13 @@ class City:
         self.name = name
 
 
-# Generiert statische Testdaten
 def generate_test_cities():
+    """
+    Generates static test data.
+
+    Returns:
+        cities (array): 4 Cities
+    """
     return [
         City(0.1, 0.1, 0),
         City(0.1, 0.6, 1),
@@ -39,11 +44,16 @@ def generate_test_cities():
     ]
 
 
-# Generiert die Städte, die die x und y-Koordinate zwischen 0 und 1 beinhalten
 def generate_cities():
+    """
+    Generates the cities containing the x and y coordinate between 0 and 1.
+
+    Returns:
+        cities_temp (list): Randomly generated cities
+    """
     cities_temp = []
 
-    city_count = np.random.randint(low=5, high=50)
+    city_count = np.random.randint(low=5, high=7)
 
     for n in range(city_count):
         x_coordinate = round(np.random.uniform(low=0.0, high=1.0), 2)
@@ -54,21 +64,29 @@ def generate_cities():
     return cities_temp
 
 
-# Generiert die Distanzmatrix (c)
-def calculate_distance(cities_list):
+def calculate_distance(cities):
+    """
+    Generates the distance matrix.
+
+    Parameters:
+        cities (list): Generated cities
+
+    Returns:
+        cities_temp (list): Randomly generated cities
+    """
     cities_distance = []
 
-    for i in range(len(cities_list)):
+    for i in range(len(cities)):
 
         city_distance = []
 
-        for j in range(len(cities_list)):
+        for j in range(len(cities)):
 
             if i == j:
                 city_distance.append(0)
             else:
-                distance = ((cities_list[i].x - cities_list[j].x) ** 2 + (
-                        cities_list[i].y - cities_list[j].y) ** 2) ** 0.5
+                distance = ((cities[i].x - cities[j].x) ** 2 + (
+                        cities[i].y - cities[j].y) ** 2) ** 0.5
                 city_distance.append(round(distance, 2))
 
         cities_distance.append(city_distance)
@@ -84,15 +102,13 @@ def residuals(x, y, t):
     return eval_f(t, x) - y
 
 
-cities = generate_cities()  # generate_test_cities()  # generate_cities()
-c = calculate_distance(cities)
-nCities = set(range(len(cities)))
+cities = generate_cities()
+distance_matrix = calculate_distance(cities)
 
-routes = [(i, j) for (i, j) in product(nCities, nCities) if i != j]
-print(routes)
-print(np.matrix(c))
+cities_range = range(len(cities))
 
-cities_range = range(len(c))
+"""Create the set for the combination list of cities. For 8 cities the set looks like this: {0, 1, 2, 3, 4, 5, 6, 7}"""
+nCities = set(cities_range)
 
 m = mip.Model()
 
@@ -100,40 +116,38 @@ start = time.time()
 
 x = [[m.add_var(var_type=mip.BINARY) for j in cities_range] for i in cities_range]
 
-# --- Nebenbedingungen aufstellen ---
-# Hier wird iterativ jede Zeile betrachtet und geprüft, dass jede Stadt nur einmal angefahren wird.
+"""
+Constraints
+----------
+Here, each line is considered iteratively and it is checked that each city is approached only once.
 
-# Hier iterieren wird pro Zeile immer von links nach rechts.
-# Bei 4 Städten lautet list(cities_range) -> [0, 1, 2, 3]
-# cities_range_reduced mit i = 0 -> [1, 2, 3]
-# cities_range_reduced mit i = 1 -> [0, 2, 3]
+Here we iterate per line always from left to right.
+For 4 cities it reads: list(cities_range) -> [0, 1, 2, 3]
+# cities_range_reduced with i = 0 -> [1, 2, 3]
+# cities_range_reduced with i = 1 -> [0, 2, 3]
 
-# Dadurch entsteht folgende Matrix:
+# This results in the following matrix:
 
-# NUL x20 x30 x40
-# x11 NUL x31 x41
-# x12 x22 NUL x42
+# NUL x11 x12 x13
+# x11 NUL x22 x23
+# x12 x22 NUL x33
 # x13 x23 x33 NUL
+"""
 for i in list(cities_range):
     cities_range_reduced = list(cities_range).copy()
     cities_range_reduced.remove(i)
 
     m += mip.xsum(x[j][i] for j in cities_range_reduced) == 1
 
-# Selbe wie oben, nur spaltenweise
+"""Here, each line is considered iteratively and it is checked that each city is entered only once"""
 for i in set(cities_range):
     cities_range_reduced = list(cities_range).copy()
     cities_range_reduced.remove(i)
 
     m += mip.xsum(x[i][j] for j in cities_range_reduced) == 1
 
-# Zusätzliche Nebenbedingunge, um Subtouren mit nur 2 Städten zu verhindern
-# for (i, j) in routes:
-#     m += x[i][j] + x[j][i] <= 1
-
-y = [m.add_var() for z in cities_range]
-
-m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
+"""Function to minimize the distance"""
+m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
 status = m.optimize()
 
 fig1 = plt.figure("With Subtours")
@@ -147,12 +161,8 @@ if m.num_solutions:
     bbs = []
     for idx, city in enumerate(cities):
         single_subtour = []
-        if idx in bbs:
-            print("Stadt {} schon in einer Subtour besucht.".format(idx));
-        else:
+        if idx not in bbs:
             nc = idx
-            # print('Subtour {}:'.format(idx))
-            # print(' -> Von Punkt: {} = ({},{})'.format(nc, cities[0].x, cities[0].y))
             bbs.append(nc)
             single_subtour.append(nc)
             while True:
@@ -165,14 +175,11 @@ if m.num_solutions:
                 lx.append(cities[nc].x)
                 ly.append(cities[nc].y)
                 plt.plot(lx, ly)
-                # print(' -> Zu Punkt: {} = ({},{})'.format(nc, cities[nc].x, cities[nc].y))
                 bbs.append(nc)
                 single_subtour.append(nc)
                 if nc == idx:
                     break
             subtours.append(single_subtour)
-
-print("INITIALE ANZAHL SUBTOUREN: ", len(subtours))
 
 # Solange es mehr als eine Subtour gibt, füge einen Cut in den Cutpool hinzu.
 # Cutpool ist eine Funktion von MIP womit, Nebenbedingungen später und bei Bedarf
@@ -190,7 +197,7 @@ while len(subtours) > 1:
             if i != j:
                 m += mip.xsum(x[i][j] for (i, j) in city_pairs) <= len(single_subt) - 1
 
-    m.objective = mip.minimize(mip.xsum(c[i][j] * x[i][j] for i in cities_range for j in cities_range))
+    m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
     status = m.optimize()
 
     subtours = []
@@ -212,9 +219,9 @@ while len(subtours) > 1:
                     if nc == idx:
                         break
                 subtours.append(single_subtour)
-    print("ANZAHL SUBTOUREN: ", len(subtours))
 
-print("Wegkosten: ", m.objective_value)
+print("Number of subtoures: ", len(subtours))
+print("Road costs: ", m.objective_value)
 
 end = time.time()
 
@@ -233,9 +240,9 @@ for sub in subtours[0]:
 plt.plot(lx, ly)
 
 """After the run the number of cities and the runtime is written to a csv (TSP Aufgabe 2 data.csv)"""
-with open('TSP Aufgabe 2 data.csv', 'a', newline='') as f:
-    writer = csv.writer(f)
-    writer.writerow([len(cities), round(end - start, 2)])
+#with open('TSP Aufgabe 2 data.csv', 'a', newline='') as f:
+#    writer = csv.writer(f)
+#    writer.writerow([len(cities), round(end - start, 2)])
 
 """The data of the csv (TSP Aufgabe 2 data.csv) are displayed in a graph, which shows the runtime analysis"""
 with open('TSP Aufgabe 2 data.csv', 'r', newline='') as f:
