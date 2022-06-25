@@ -199,22 +199,22 @@ if m.num_solutions:
     for idx, city in enumerate(cities):
         single_subtour = []
         if idx not in already_visited_subtour:
-            nc = idx
-            already_visited_subtour.append(nc)
-            single_subtour.append(nc)
+            ci = idx
+            already_visited_subtour.append(ci)
+            single_subtour.append(ci)
             while True:
-                lx = [cities[nc].x]
-                ly = [cities[nc].y]
+                lx = [cities[ci].x]
+                ly = [cities[ci].y]
                 for i in cities_range:
-                    if x[nc][i].x >= 0.99:
-                        nc = i
+                    if x[ci][i].x >= 0.99:
+                        ci = i
                         break
-                lx.append(cities[nc].x)
-                ly.append(cities[nc].y)
+                lx.append(cities[ci].x)
+                ly.append(cities[ci].y)
                 plt.plot(lx, ly)
-                already_visited_subtour.append(nc)
-                single_subtour.append(nc)
-                if nc == idx:
+                already_visited_subtour.append(ci)
+                single_subtour.append(ci)
+                if ci == idx:
                     break
             subtours.append(single_subtour)
 
