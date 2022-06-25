@@ -207,19 +207,19 @@ while len(subtours) > 1:
     """Here all existing subtours are selected and the routes between the cities are plotted."""
     subtours = []
     if m.num_solutions:
-        bbs = []
+        already_visited_city = []
         for idx, city in enumerate(cities):
             single_subtour = []
-            if idx not in bbs:
+            if idx not in already_visited_city:
                 ci = idx
-                bbs.append(ci)
+                already_visited_city.append(ci)
                 single_subtour.append(ci)
                 while True:
                     for i in cities_range:
                         if float(x[ci][i].x) >= 0.99:
                             ci = i
                             break
-                    bbs.append(ci)
+                    already_visited_city.append(ci)
                     single_subtour.append(ci)
                     if ci == idx:
                         break

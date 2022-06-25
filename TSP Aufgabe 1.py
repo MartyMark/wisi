@@ -178,11 +178,11 @@ subtoures = subtoures[1:(len(subtoures) - 1)]
 For each possible subtour, set the rule that there can never be as many or more routes as cities in the subtour.
 This ensures that no subtour can be occurred.
 """
-for S in subtoures:
-    b = copy.deepcopy(S)
-    not_in_S = set(fullTour) - set(b)
-    if 2 <= len(S) <= len(fullTour) - 2:
-        m += mip.xsum(x[i][j] for i in S for j in not_in_S) >= 1
+for s in subtoures:
+    subtour_copy = copy.deepcopy(s)
+    not_in_S = set(fullTour) - set(subtour_copy)
+    if 2 <= len(s) <= len(fullTour) - 2:
+        m += mip.xsum(x[i][j] for i in s for j in not_in_S) >= 1
 
 """Function to minimize the distance"""
 m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
