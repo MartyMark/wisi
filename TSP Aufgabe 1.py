@@ -152,6 +152,9 @@ For 4 cities it reads: list(cities_range) -> [0, 1, 2, 3]
 # x11 NUL x22 x23
 # x12 x22 NUL x33
 # x13 x23 x33 NUL
+
+In the for loop, we iterate effected through each decision variable that determines whether the route is 
+part of the tour, thereby constraining the exit from each city only once
 """
 for i in list(cities_range):
     cities_range_reduced = list(cities_range).copy()
