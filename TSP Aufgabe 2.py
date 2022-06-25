@@ -159,12 +159,12 @@ for idx, city in enumerate(cities):
 """Here all existing subtours are selected and the routes between the cities are plotted."""
 subtours = []
 if m.num_solutions:
-    bbs = []
+    already_visited_city = []
     for idx, city in enumerate(cities):
         single_subtour = []
-        if idx not in bbs:
-            ci= idx
-            bbs.append(ci)
+        if idx not in already_visited_city:
+            ci = idx
+            already_visited_city.append(ci)
             single_subtour.append(ci)
             while True:
                 lx = [cities[ci].x]
@@ -176,7 +176,7 @@ if m.num_solutions:
                 lx.append(cities[ci].x)
                 ly.append(cities[ci].y)
                 plt.plot(lx, ly)
-                bbs.append(ci)
+                already_visited_city.append(ci)
                 single_subtour.append(ci)
                 if ci == idx:
                     break
