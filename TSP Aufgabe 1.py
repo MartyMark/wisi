@@ -171,19 +171,19 @@ for i in set(cities_range):
 
 subtoures = find_all_possible_subtours(cities)
 """The last subtour is the subtour where all the points are in it"""
-fullTour = copy.deepcopy(subtoures[-1])
+full_tour = copy.deepcopy(subtoures[-1])
 subtoures = subtoures[1:(len(subtoures) - 1)]
 
 """
 For each possible subtour, set the rule that there can never be as many or more routes as cities in the subtour.
 This ensures that no subtour can be occurred.
 """
-for s in subtoures:
-    subtour_copy = copy.deepcopy(s)
-    not_in_S = set(fullTour) - set(subtour_copy)
-    if 2 <= len(s) <= len(fullTour) - 2:
-        m += mip.xsum(x[i][j] for i in s for j in not_in_S) >= 1
-
+for subtour in subtoures:
+    subtour_copy = copy.deepcopy(subtour)
+    not_in_S = set(full_tour) - set(subtour_copy)
+    if 2 <= len(subtour) <= len(full_tour) - 2:
+        m += mip.xsum(x[i][j] for i in subtour for j in not_in_S) >= 1
+ 
 """Function to minimize the distance"""
 m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
 status = m.optimize()
