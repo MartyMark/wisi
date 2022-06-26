@@ -180,9 +180,9 @@ This ensures that no subtour can be occurred.
 """
 for subtour in subtoures:
     subtour_copy = copy.deepcopy(subtour)
-    not_in_S = set(full_tour) - set(subtour_copy)
+    not_in_subtour_copy = set(full_tour) - set(subtour_copy)
     if 2 <= len(subtour) <= len(full_tour) - 2:
-        m += mip.xsum(x[i][j] for i in subtour for j in not_in_S) >= 1
+        m += mip.xsum(x[i][j] for i in subtour for j in not_in_subtour_copy) >= 1
  
 """Function to minimize the distance"""
 m.objective = mip.minimize(mip.xsum(distance_matrix[i][j] * x[i][j] for i in cities_range for j in cities_range))
