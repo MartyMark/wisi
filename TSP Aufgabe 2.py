@@ -238,7 +238,7 @@ end = time.time()
 lx = []
 ly = []
 fig2 = plt.figure("Without Subtours")
-plt.title("Tour ohne Subtouren")
+plt.title("Tour without Subtours")
 for idx, city in enumerate(cities):
     plt.scatter(city.x, city.y, s=10)
     plt.annotate(idx, (city.x, city.y))
