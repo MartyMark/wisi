@@ -185,6 +185,7 @@ if m.num_solutions:
                     break
             subtours.append(single_subtour)
 
+print("Initial number of subtoures:", len(subtours))
 """
 If there are more than one Subtour, for every Subtour find all corresponding Citiespairs and their routes. 
 For all possible Routes in the Subtour add a Constraint to eliminate the Subtour.
@@ -227,8 +228,9 @@ while len(subtours) > 1:
                     if ci == idx:
                         break
                 subtours.append(single_subtour)
+        print("Number of subtoures:", len(subtours))
 
-print("Number of subtoures: ", len(subtours))
+print("Final Number of subtoures: ", len(subtours))
 print("Road costs: ", m.objective_value)
 
 end = time.time()
